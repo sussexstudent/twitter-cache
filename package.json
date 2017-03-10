@@ -1,0 +1,49 @@
+{
+  "name": "twitter-cache",
+  "description": "Simple Twitter API proxy with signed requests",
+  "version": "1.0.0",
+  "author": "James Canning",
+  "devDependencies": {
+    "babel-core": "^6.18.2",
+    "babel-loader": "^6.2.8",
+    "babel-preset-latest": "^6.16.0",
+    "json-loader": "^0.5.4",
+    "node-lambda": "^0.8.11",
+    "webpack": "^1.13.3",
+    "webpack-node-externals": "^1.5.4"
+  },
+  "homepage": "https://github.com/sussexstudent/twitter-cache#readme",
+  "keywords": [
+    "aws",
+    "babel",
+    "es2015",
+    "es6",
+    "hook",
+    "lambda",
+    "microservice",
+    "task",
+    "webhook"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sussexstudent/twitter-cache.git"
+  },
+  "scripts": {
+    "deploy": "node-lambda deploy --handler dist/index.default --configFile deploy.env --functionName $npm_package_name --description \"$npm_package_description\"",
+    "lambda": "node-lambda",
+    "package": "node-lambda package --handler dist/index.default --configFile deploy.env --functionName $npm_package_name --excludeGlobs \"./index.js webpack.config.js context.json event.json .babelrc .nvmrc .gitignore LICENSE.md README.md\"",
+    "postinstall": "node-lambda setup",
+    "predeploy": "NODE_ENV=production webpack -p",
+    "prepackage": "NODE_ENV=production webpack -p",
+    "pretest": "webpack",
+    "setup": "node-lambda setup",
+    "start": "webpack --watch",
+    "test": "eval $([ -f deploy.env ] && cat deploy.env) node-lambda run --handler dist/index.default",
+    "webpack": "webpack"
+  },
+  "dependencies": {
+    "twitter": "^1.7.0"
+  }
+}
