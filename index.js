@@ -14,13 +14,25 @@ function list(owner, name) {
       slug: name,
       owner_screen_name: owner,
       tweet_mode: 'extended',
-      count: 6,
+      count: 10,
     },
   };
 };
 
+function user(name) {
+  return {
+    resource: 'statuses/user_timeline',
+    data: {
+      screen_name: name,
+      tweet_mode: 'extended',
+      count: 10,
+    }
+  };
+}
+
 var presets = {
-  list
+  list,
+  user
 };
 
 function isSigned(query, sign) {
@@ -33,44 +45,36 @@ function isSigned(query, sign) {
   return hash === sign;
 }
 
+function res(statusCode, response) {
+  return {
+    statusCode,
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+    },
+    body: JSON.stringify(response)
+  };
+}
+
 export default function (event, context, callback) {
-  const q = event.queryStringParameters.q.split('.');
+  const q = event.queryStringParameters.q.split('/');
   const preset = q[0];
   if (!presets.hasOwnProperty(preset)) {
-      callback(null, {
-        statusCode: 500,
-        headers: {},
-        body: 'Preset does not exist!'
-      });
+      callback(null, res(500, { error: 'unknown preset' }));
       return;
     }
   if (!isSigned(event.queryStringParameters.q, event.queryStringParameters.s)) {
-      callback(null, {
-        statusCode: 500,
-        headers: {},
-        body: 'Not signed!'
-      });
+      callback(null, res(500, { error: 'incorrect signature' }));
       return;
   }
-  const request = presets[preset](...q[1].split('/'));
+  const request = presets[preset](...q[1].split(','));
   console.log(request);
   client.get(request.resource, request.data, function(error, tweets) {
     if (error) {
-      callback(null, {
-        statusCode: 500,
-        headers: {},
-        body: 'An error!'
-      });
+      callback(null, res(500, { error: 'twitter api error' }));
     } else {
-      callback(null, {
-        statusCode: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
-        },
-        body: JSON.stringify(tweets)
-      });
+      callback(null, res(200, tweets));
     }
   });
 };
